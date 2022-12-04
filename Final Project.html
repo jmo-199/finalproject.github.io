@@ -1,0 +1,126 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="https://d3js.org/d3.v3.min.js"></script>
+        <style>
+            text { 
+                font-family: Arial; 
+                font-size: 15px;
+            }
+            .axis path, .axis line {
+                fill: none;
+                stroke: black;
+                shape-rendering: crispEdges;
+            }
+            .tick text {
+                fill: black;
+                font-size: 11px;
+            }
+    
+            rect {
+                stroke: white;
+            }
+        </style>
+    </head>
+    <body>
+        <svg id="main" width="600" height="600">
+            <text id='label' x='20' y='20'>Natural Disasters Count in the US since 2002</text>
+            <g transform="translate(50,50)"></g>
+        </svg>
+    
+        
+        <script>
+    
+            var BAR_WIDTH = 10;
+            var MAX_BAR_HEIGHT = 100;
+    
+            var incident_count = [];
+           
+            
+            function drawBarChart() 
+		{
+
+			
+			var maxValue = d3.max(incident_count);
+            
+            var selection = d3.select('svg').select('g').selectAll('rect').data(incident_count);
+
+			var rectangles = selection.enter().append('rect');
+			
+			rectangles.attr('width', BAR_WIDTH)
+			
+			rectangles.attr('x', function(d, i) {
+				return i * BAR_WIDTH;
+			})
+			
+			rectangles.attr('height', function(d) 
+			{
+				var n = d / maxValue;
+				return n * MAX_BAR_HEIGHT;
+			});
+
+			rectangles.attr('y', function(d) 
+			{
+				var n = 1 - (d / maxValue);
+				return n * MAX_BAR_HEIGHT;
+
+			});
+
+
+		}
+
+        var CHART_WIDTH = 400;
+		var CHART_HEIGHT = 130;
+
+        function drawLineChart() 
+		{
+			var maxValue=d3.max(incident_count),xScale=d3.scale.linear(),yScale=d3.scale.linear();
+            xScale.domain([2002,2022]).range([0,CHART_WIDTH]),yScale.domain([0,10000]).range([CHART_HEIGHT,0]);
+            var pathGenerator=d3.svg.line().x(function(e){return xScale(e.year)}).
+            y(function(e){return yScale(e.disaster)}),
+            g=d3.select("svg").select("g"),xAxis=d3.svg.axis().scale(xScale).orient("bottom").tickFormat(function(e){return""+e}),
+            yAxis=d3.svg.axis().scale(yScale).orient("left");g.append("g").attr("class","axis").
+            attr("transform","translate(0,"+CHART_HEIGHT+")").call(xAxis),g.append("g").attr("class","axis").
+            call(yAxis),g.append("path").style("fill","none").style("stroke","red").
+            style("stroke-width","3px").attr("d",pathGenerator(incident_count));
+
+		}
+
+
+
+
+
+	
+
+            d3.csv('US_naturaldisaster_occurences2.csv', function(data) 
+		{
+			for (var i=0; i<data.length; i++)
+			{
+				var record = data[i];
+				
+				// loop through all years, from 2002 to 2022
+				for (var y=2002; y<=2022; y++) 
+				{
+					var value = record[y];
+					var object = {
+						year: y,
+						disaster: +value
+					};
+
+					incident_count.push(object);
+				}
+			}
+			drawLineChart();
+
+			
+
+		});
+
+        
+            
+        </script>
+
+        
+    </body>
+</html>
+
